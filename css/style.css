@@ -1,0 +1,280 @@
+/* css/style.css */
+
+/* Общие стили для body и reveal */
+body {
+    background-color: #f0f8ff; /* Нежно-голубой фон */
+    font-family: 'Comic Sans MS', 'Chalkduster', 'cursive'; /* Веселый детский шрифт */
+}
+
+.reveal {
+    font-size: 32px; /* Увеличим базовый размер шрифта */
+    color: #333; /* Темно-серый текст для читаемости */
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+    color: #ff6347; /* Томатный цвет для заголовков */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Легкая тень для объема */
+}
+
+.reveal section {
+    padding: 20px;
+    box-sizing: border-box;
+    min-height: 90vh; /* Занимаем почти весь экран */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Стили для кнопок */
+.reveal button,
+.reveal .button {
+    font-family: 'Comic Sans MS', 'Chalkduster', 'cursive';
+    background-color: #4682b4; /* Стальной синий */
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 25px; /* Сильно скругленные углы */
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+.reveal button:hover,
+.reveal .button:hover {
+    background-color: #5a9bd8; /* Светлее при наведении */
+    transform: scale(1.05); /* Немного увеличиваем */
+}
+
+.reveal button:active,
+.reveal .button:active {
+    transform: scale(0.98); /* Уменьшаем при нажатии */
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Стили для игры "Перепутанные Буквы" */
+#game-scrambled-letters .game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px; /* Пространство между элементами */
+    margin-top: 20px;
+    position: relative; /* Для абсолютного позиционирования дочерних элементов */
+    width: 80%;
+    min-height: 400px; /* Минимальная высота для размещения элементов */
+    background-color: rgba(255, 255, 255, 0.7); /* Полупрозрачный белый фон */
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#game-scrambled-letters .word-image p {
+    font-size: 6em; /* Большой размер для эмодзи */
+    margin: 0;
+    padding: 0;
+}
+
+#game-scrambled-letters .letter-placeholders {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px; /* Отступ снизу */
+    min-height: 80px; /* Высота для плейсхолдеров */
+}
+
+#game-scrambled-letters .placeholder {
+    width: 70px;
+    height: 70px;
+    border: 3px dashed #ffcc00; /* Пунктирная желтая рамка */
+    background-color: #fffacd; /* Лимонно-шифоновый фон */
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#game-scrambled-letters .placeholder.over {
+    background-color: #fff0b3;
+    border-color: #ffa500; /* Оранжевый при наведении */
+}
+
+#game-scrambled-letters .placeholder .letter {
+    position: static !important; /* Убираем позиционирование у вставленной буквы */
+    box-shadow: none; /* Убираем тень у вставленной буквы */
+    cursor: default;
+    margin: 0; /* Убираем отступы, чтобы помещалась ровно */
+}
+
+#game-scrambled-letters .draggable-letters {
+    display: flex;
+    flex-wrap: wrap; /* Перенос букв, если не влезают */
+    gap: 15px;
+    justify-content: center;
+    min-height: 100px; /* Минимальная высота контейнера букв */
+    width: 100%; /* Занимаем всю ширину игровой зоны */
+    padding: 20px;
+    background-color: rgba(173, 216, 230, 0.5); /* Полупрозрачный светло-голубой */
+    border-radius: 15px;
+}
+
+#game-scrambled-letters .letter {
+    width: 60px;
+    height: 60px;
+    background-color: #add8e6; /* Светло-голубой фон буквы */
+    border: 2px solid #87ceeb; /* Небесно-голубая рамка */
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #000080; /* Темно-синий текст */
+    cursor: grab;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    user-select: none; /* Запрещаем выделение текста буквы */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#game-scrambled-letters .letter:active {
+    cursor: grabbing;
+}
+
+#game-scrambled-letters .letter.dragging {
+    opacity: 0.5;
+    transform: scale(1.1);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+#game-scrambled-letters .letter.placed {
+     background-color: #90ee90; /* Светло-зеленый для угаданной */
+     border-color: #3cb371; /* Морская зелень */
+     color: #006400; /* Темно-зеленый текст */
+     cursor: default;
+     box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2); /* Внутренняя тень */
+}
+
+/* Стили для обратной связи */
+#game-scrambled-letters .feedback {
+    margin-top: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    min-height: 40px; /* Резервируем место */
+    text-align: center;
+    padding: 10px 20px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+#game-scrambled-letters .feedback.success {
+    color: #228b22; /* Лесной зеленый */
+    background-color: rgba(144, 238, 144, 0.7); /* Полупрозрачный светло-зеленый */
+}
+
+#game-scrambled-letters .feedback.error {
+    color: #dc143c; /* Малиновый */
+    background-color: rgba(255, 182, 193, 0.7); /* Полупрозрачный светло-розовый */
+     /* Добавим легкое дрожание для ошибки */
+     animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* --- Обновленные стили для счета --- */
+#game-scrambled-letters .score-display {
+    position: absolute; /* Абсолютное позиционирование */
+    top: 15px;          /* Отступ сверху */
+    right: 15px;         /* Отступ справа */
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #4682b4;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 15px;
+    border-radius: 15px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+/* ------------------------------- */
+
+/* --- Стили для новой иконки-кнопки --- */
+#game-scrambled-letters .icon-button {
+    position: absolute;
+    top: 55px; /* Располагаем под счетом (15px + ~40px высота счета) */
+    right: 15px;
+    background: none; /* Убираем фон */
+    border: none;     /* Убираем рамку */
+    font-size: 2em;   /* Размер иконки */
+    padding: 5px;
+    cursor: pointer;
+    color: #ff7f50; /* Коралловый цвет */
+    transition: transform 0.2s ease;
+    z-index: 10;
+}
+
+#game-scrambled-letters .icon-button:hover {
+    transform: scale(1.1) rotate(15deg); /* Эффект при наведении */
+}
+
+#game-scrambled-letters .icon-button:active {
+    transform: scale(0.9); /* Эффект при нажатии */
+}
+/* ------------------------------------- */
+
+/* --- Обновленные Стили для эффектов победы --- */
+
+/* Конфетти */
+.confetti {
+    position: fixed; /* Оставляем fixed для покрытия всего экрана */
+    width: 10px;
+    height: 10px;
+    background-color: var(--color);
+    opacity: 0;
+    /* Изменяем анимацию: длительность 5с, не бесконечная, forwards чтобы остаться в конечном состоянии */
+    animation: fall 5s linear forwards;
+    z-index: 9999;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Фейерверк */
+.firework-particle {
+    position: fixed; /* Используем fixed для позиционирования относительно окна */
+    width: 5px;
+    height: 5px;
+    background: var(--color);
+    border-radius: 50%;
+    opacity: 1;
+    /* Анимация взрыва остается короткой (0.8с), эффект длится за счет разлета */
+    animation: explode 0.8s ease-out forwards;
+    transform-origin: center;
+    z-index: 9998;
+}
+
+@keyframes explode {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        /* Частицы разлетаются и исчезают */
+        transform: scale(0) var(--transform);
+        opacity: 0;
+    }
+}
+/* --------------------------------------- */ 
