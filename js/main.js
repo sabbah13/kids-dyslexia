@@ -1,17 +1,17 @@
 // js/main.js
 
 // Инициализация Reveal.js после загрузки DOM
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', async (event) => {
     console.log("DOM fully loaded and parsed");
 
     // Initialize Reveal.js first
     try {
         Reveal.initialize({
             hash: true, // Добавляем хэши к слайдам в URL
-            history: true, // Включаем историю браузера для навигации по слайдам
+            history: false, // Включаем историю браузера для навигации по слайдам
             controls: true, // Показываем кнопки управления
             progress: true, // Показываем индикатор прогресса
-            center: true, // Центрируем слайды вертикально
+            center: false, // Центрируем слайды вертикально
             transition: 'slide', // Эффект перехода по умолчанию
             touch: false, // <-- Disable touch/swipe navigation
             // Дополнительные настройки, если нужны:
@@ -29,51 +29,56 @@ document.addEventListener('DOMContentLoaded', (event) => {
         console.error("Error initializing Reveal.js:", e);
     }
 
-    // Game initialization is now handled within games.js itself
-    // if (typeof initGames === 'function') { ... } // Этот блок больше не нужен здесь
+    // Initialize games after Reveal.js is set up
+    // Check if initGames function exists (loaded from games.js)
+    if (typeof initGames === 'function') {
+        console.log("Calling initGames() from main.js...");
+        await initGames(); // Wait for games (and data) to initialize
+        console.log("initGames() finished.");
+    } else {
+        console.error("initGames function not found! Check games.js loading.");
+    }
 
     console.log("Main script finished (Reveal initialized).");
 
     // --- iOS Audio Unlock --- 
     let audioUnlocked = false;
-    const unlockAudio = () => {
+    const unlockAudio = async () => {
         if (audioUnlocked) return;
         console.log('Attempting to unlock audio context...');
         // Try to play one of the sounds silently
         const soundsToUnlock = ['correctSound', 'errorSound', 'winSound'];
         let unlocked = false;
-        soundsToUnlock.forEach(soundId => {
+
+        // Use Promise.allSettled to try unlocking all sounds
+        const unlockPromises = soundsToUnlock.map(soundId => {
             const sound = document.getElementById(soundId);
             if (sound) {
-                const playPromise = sound.play();
-                if (playPromise !== undefined) {
-                     playPromise.then(() => {
-                         // Playback started successfully, pause immediately
-                         sound.pause();
-                         sound.currentTime = 0;
-                         if (!unlocked) {
-                            console.log('Audio context likely unlocked with:', soundId);
-                            unlocked = true;
-                            audioUnlocked = true; // Set global flag
-                            // Remove the listener after successful unlock
-                            document.body.removeEventListener('click', unlockAudio, true);
-                            document.body.removeEventListener('touchstart', unlockAudio, true);
-                         }
-                     }).catch(error => {
-                         // Playback failed, likely needs more interaction
-                         // console.warn(`Could not unlock audio with ${soundId}:`, error.name, error.message);
+                return sound.play()
+                     .then(() => {
+                          // Playback started successfully, pause immediately
+                          sound.pause();
+                          sound.currentTime = 0;
+                          return soundId; // Return ID on success
+                      })
+                     .catch(error => {
+                         // console.warn(`Could not unlock audio with ${soundId}:`, error.name); // Mute warning
+                         return null; // Return null on failure
                      });
-                } 
-                // else { // Optional: Handle browsers not supporting play() promise
-                //     sound.pause();
-                //     sound.currentTime = 0;
-                // }
+            } else {
+                return Promise.resolve(null); // Resolve null if element not found
             }
         });
-        // Fallback in case promises didn't resolve/unlock immediately
-        // audioUnlocked = true;
-        // document.body.removeEventListener('click', unlockAudio, true);
-        // document.body.removeEventListener('touchstart', unlockAudio, true);
+
+        const results = await Promise.allSettled(unlockPromises);
+        const successfulUnlock = results.some(result => result.status === 'fulfilled' && result.value !== null);
+
+        if (successfulUnlock && !audioUnlocked) {
+            console.log('Audio context unlocked successfully!');
+            audioUnlocked = true;
+            document.body.removeEventListener('click', unlockAudio, true);
+            document.body.removeEventListener('touchstart', unlockAudio, true);
+        }
     };
 
     // Add listeners for the first user interaction

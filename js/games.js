@@ -1,44 +1,9 @@
 // --- Игра 1: Перепутанные Буквы (Scrambled Letters) ---
 
-// Определяем итоговый массив слов сразу
-const scrambledLettersData = [
-    // Короткие (3-4 буквы) - 20+ слов
-    { word: "ДОМ", emoji: "🏠" }, { word: "КОТ", emoji: "🐈" }, { word: "СУП", emoji: "🍲" },
-    { word: "МЯЧ", emoji: "⚽" }, { word: "ЛЕС", emoji: "🌳" }, { word: "ДУБ", emoji: "🌳" },
-    { word: "РЫБА", emoji: "🐠" }, { word: "УТКА", emoji: "🦆" }, { word: "ВОДА", emoji: "💧" },
-    { word: "НЕБО", emoji: "☁️" }, { word: "ЛУНА", emoji: "🌙" }, { word: "ХЛЕБ", emoji: "🍞" },
-    { word: "СЫР", emoji: "🧀" }, { word: "ПАРК", emoji: "🏞️" }, { word: "СТВОЛ", emoji: "🪵" }, // Используем дерево для ствола
-    { word: "СТУЛ", emoji: "🪑" }, { word: "ШАР", emoji: "🎈" }, { word: "ФЛАГ", emoji: "🚩" },
-    { word: "КЛЮЧ", emoji: "🔑" }, { word: "МОСТ", emoji: "🌉" }, { word: "ЧАСЫ", emoji: "🕰️" },
-
-    // Средние (5-6 букв) - 25+ слов
-    { word: "ЯБЛОКО", emoji: "🍎" }, { word: "СОЛНЦЕ", emoji: "☀️" }, { word: "МАШИНА", emoji: "🚗" },
-    { word: "КНИГА", emoji: "📚" }, { word: "РАДУГА", emoji: "🌈" }, { word: "ЗВЕЗДА", emoji: "⭐" },
-    { word: "ЦВЕТОК", emoji: "🌸" }, { word: "ШКОЛА", emoji: "🏫" }, { word: "МУЗЫКА", emoji: "🎵" },
-    { word: "ПТИЧКА", emoji: "🐦" }, { word: "СОБАКА", emoji: "🐕" }, { word: "КОРОВА", emoji: "🐄" },
-    { word: "ЗАЯЦ", emoji: "🐇" }, { word: "СТАКАН", emoji: "🥛" }, { word: "КРЕСЛО", emoji: "🛋️" },
-    { word: "ПЛАНЕТА", emoji: "🪐" }, { word: "РАКЕТА", emoji: "🚀" }, { word: "ЗАМОК", emoji: "🏰" },
-    { word: "ЗЕБРА", emoji: "🦓" }, { word: "БАНАН", emoji: "🍌" }, { word: "ГРУША", emoji: "🍐" },
-    { word: "СЛИВА", emoji: "🍑" }, { word: "ОГОНЬ", emoji: "🔥" }, { word: "РЮКЗАК", emoji: "🎒" },
-    { word: "ЛОДКА", emoji: "⛵" }, { word: "ШЛЯПА", emoji: "👒" }, { word: "ТУЧКА", emoji: "🌥️" },
-
-    // Длинные (7-8 букв) - 20+ слов
-    { word: "ПОДАРОК", emoji: "🎁" }, { word: "ДЕРЕВО", emoji: "🌳" }, { word: "КАРАНДАШ", emoji: "✏️" },
-    { word: "ТЕЛЕФОН", emoji: "📱" }, { word: "ПИРАМИДА", emoji: "🔺" }, { word: "АПЕЛЬСИН", emoji: "🍊" },
-    { word: "КАРТОШКА", emoji: "🥔" }, { word: "КАРТИНА", emoji: "🖼️" }, { word: "ПАРОВОЗ", emoji: "🚂" },
-    { word: "СКРИПКА", emoji: "🎻" }, { word: "БАБОЧКА", emoji: "🦋" }, { word: "АВТОБУС", emoji: "🚌" },
-    { word: "ЛЯГУШКА", emoji: "🐸" }, { word: "МОЛОКО", emoji: "🥛" }, { word: "САПОГИ", emoji: "👢" },
-    { word: "КОНФЕТА", emoji: "🍬" }, { word: "ТЕТРАДЬ", emoji: "📓" }, { word: "ПОМИДОР", emoji: "🍅" },
-    { word: "АНАНАС", emoji: "🍍" }, { word: "ПОДУШКА", emoji: "<0xF0><0x9F><0xAB><0x95>" },
-
-    // Очень длинные (> 8 букв) - 15+ слов
-    { word: "МОРОЖЕНОЕ", emoji: "🍦" }, { word: "ВЕЛОСИПЕД", emoji: "🚲" }, { word: "САМОЛЕТ", emoji: "✈️" },
-    { word: "КОРАБЛЬ", emoji: "🚢" }, { word: "КОМПЬЮТЕР", emoji: "💻" }, { word: "ПЛАНШЕТ", emoji: "📲" },
-    { word: "ФОТОАППАРАТ", emoji: "📷" }, { word: "ВЕРТОЛЕТ", emoji: "🚁" }, { word: "ТЕЛЕВИЗОР", emoji: "📺" },
-    { word: "ХОЛОДИЛЬНИК", emoji: "🧊" }, { word: "КАЛЬКУЛЯТОР", emoji: "🧮" }, { word: "ЧЕРЕПАХА", emoji: "🐢" },
-    { word: "АВТОМОБИЛЬ", emoji: "🚗" }, { word: "ЭКСКАВАТОР", emoji: "<0xF0><0x9F><0x9A><0x91>" }, { word: "БИБЛИОТЕКА", emoji: "<0xF0><0x9F><0x93><0x9A>" },
-    { word: "ВИНОГРАД", emoji: "🍇" },
-];
+let allWordsData = []; // Будет загружен из JSON
+let currentInteractableLetter = null; // To store the interactable instance
+let currentDropzoneInteractable = null; // To store the dropzone interactable instance
+let allSyllableData = []; // Placeholder for syllable data
 
 let currentScrambledWord = '';
 let shuffledLetters = [];
@@ -47,13 +12,58 @@ let score = 0;
 let scoreDisplayElement = null;
 let restartIconButtonElement = null; // Новая кнопка-иконка рестарта
 let usedWordsThisSession = []; // Массив для отслеживания использованных слов
-let currentInteractableLetter = null; // To store the interactable instance
-let currentDropzoneInteractable = null; // To store the dropzone interactable instance
+
+// --- Function to fetch word data ---
+async function loadWordData() {
+    try {
+        const response = await fetch('assets/data/words.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        allWordsData = await response.json();
+        console.log("Word data loaded successfully:", allWordsData.length, "words");
+        return true;
+    } catch (error) {
+        console.error("Could not load word data:", error);
+        // Optionally display an error to the user in the feedback area
+        const feedbackElement = document.querySelector('#game-scrambled-letters .feedback');
+        if (feedbackElement) {
+            feedbackElement.textContent = 'Ошибка загрузки слов!';
+            feedbackElement.className = 'feedback error';
+        }
+        return false;
+    }
+}
+
+// --- Placeholder Function to fetch syllable data (Update for Task 6) ---
+async function loadSyllableData() {
+    console.warn("loadSyllableData() not implemented yet. Using placeholder data.");
+    // TODO: Fetch from a JSON file like assets/data/syllables.json (Task 6)
+    allSyllableData = [
+        { word: "КОРОВА", syllables: ["КО", "РО", "ВА"] },
+        { word: "СОБАКА", syllables: ["СО", "БА", "КА"] },
+        { word: "МАШИНА", syllables: ["МА", "ШИ", "НА"] },
+        { word: "РАДУГА", syllables: ["РА", "ДУ", "ГА"] },
+        // Add more example words
+    ];
+    console.log("Placeholder syllable data loaded:", allSyllableData.length, "words");
+    return true;
+}
 
 // --- Initialization Function ---
-function initGames() {
+async function initGames() { // Make initGames async
     console.log("Инициализация игр из games.js...");
-    initScrambledLettersGame();
+    // Load data first
+    const wordDataLoaded = await loadWordData();
+    const syllableDataLoaded = await loadSyllableData(); // Load syllable data
+
+    if (wordDataLoaded) { // Init game 1 if its data loaded
+        initScrambledLettersGame();
+    }
+    if (syllableDataLoaded) { // Init game 2 if its data loaded
+        initCatchSyllablesGame();
+    }
+    // Add initialization for other games here later as needed
 }
 
 // --- Игра 1: Перепутанные Буквы (Scrambled Letters) ---
@@ -210,7 +220,7 @@ function initScrambledLettersGame() {
             case 2: minLength = 5; maxLength = 6; break;
             case 3: minLength = 6; maxLength = 7; break;
             case 4: minLength = 7; maxLength = 8; break;
-            default: minLength = 8; maxLength = Math.max(...scrambledLettersData.map(w => w.word.length)); break;
+            default: minLength = 8; maxLength = Math.max(...allWordsData.map(w => w.word.length)); break;
         }
         console.log(`Score: ${score} (Level: ${scoreLevel}), Difficulty Range: ${minLength}-${maxLength} letters`);
         return { minLength, maxLength };
@@ -222,14 +232,14 @@ function initScrambledLettersGame() {
         feedbackElement.className = 'feedback';
 
         const { minLength, maxLength } = determineWordLengthRange();
-        let availableWords = scrambledLettersData.filter(item =>
+        let availableWords = allWordsData.filter(item =>
             item.word.length >= minLength &&
             item.word.length <= maxLength &&
             !usedWordsThisSession.includes(item.word)
         );
         if (availableWords.length === 0) {
             console.log("No unused words found for current difficulty, trying any unused words...");
-            availableWords = scrambledLettersData.filter(item => !usedWordsThisSession.includes(item.word));
+            availableWords = allWordsData.filter(item => !usedWordsThisSession.includes(item.word));
         }
         if (availableWords.length === 0) {
              feedbackElement.textContent = "🎉 Ура! Ты прошел ВСЕ слова! 🎉";
@@ -246,7 +256,7 @@ function initScrambledLettersGame() {
         currentScrambledWord = selectedWordData.word;
         usedWordsThisSession.push(currentScrambledWord);
         const currentEmoji = selectedWordData.emoji;
-        console.log("Selected word:", currentScrambledWord, `(Length: ${currentScrambledWord.length})`, `Used: ${usedWordsThisSession.length}/${scrambledLettersData.length}`);
+        console.log("Selected word:", currentScrambledWord, `(Length: ${currentScrambledWord.length})`, `Used: ${usedWordsThisSession.length}/${allWordsData.length}`);
 
         shuffledLetters = currentScrambledWord.split('').sort(() => Math.random() - 0.5);
         if (shuffledLetters.join('') === currentScrambledWord && currentScrambledWord.length > 1) {
@@ -354,15 +364,33 @@ function initScrambledLettersGame() {
 }
 // --- Конец Игры 1: Перепутанные Буквы ---
 
+// --- Игра 2: Лови Слоги (Catch Syllables) ---
+function initCatchSyllablesGame() {
+    console.log("Initializing Catch Syllables Game...");
+    const gameContainer = document.getElementById('game-catch-syllables');
+    if (!gameContainer) {
+        console.warn("Catch Syllables game container not found in this slide.");
+        return; // Exit if the container is not on the current slide
+    }
+
+    const gameArea = gameContainer.querySelector('.game-area');
+    if (gameArea) {
+        gameArea.innerHTML = ''; // Clear the "in development" message
+        // TODO: Add game elements (falling syllables area, target word area, score)
+        gameArea.textContent = 'Game 2: Catch Syllables - Ready!'; // Placeholder content
+    }
+
+    // TODO: Implement game logic
+    // 1. Load syllable/word data (needs Task 6 update)
+    // 2. Select word, display target slots
+    // 3. Generate falling syllables (correct and incorrect)
+    // 4. Handle clicks on syllables
+    // 5. Check for word completion / errors
+    // 6. Add animations and sounds
+    // 7. Update score
+}
+
 // --- Здесь будут функции для других игр ---
 // function initCatchSyllablesGame() { ... }
-
-// --- Wait for DOM and then initialize all games ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM loaded, initializing games from games.js...");
-    // Можно добавить проверку, инициализирован ли Reveal.js, но обычно DOMContentLoaded достаточно
-    // if (Reveal.isReady()) { ... }
-    initGames();
-});
 
 // --- End of Game Logic ---
