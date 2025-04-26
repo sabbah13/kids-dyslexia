@@ -1,0 +1,112 @@
+{
+  "projectInfo": {
+    "name": "Kids Dyslexia Games",
+    "description": "A web-based collection of simple games designed to help children with dyslexia practice reading skills.",
+    "techStack": ["HTML", "CSS", "JavaScript", "interact.js"]
+  },
+  "fileStructure": [
+    {
+      "pattern": "index.html",
+      "purpose": "Main HTML file containing the structure for different game slides and UI elements. Entry point for the web application."
+    },
+    {
+      "pattern": "css/style.css",
+      "purpose": "Contains all CSS rules for styling the application and games."
+    },
+    {
+      "pattern": "js/main.js",
+      "purpose": "Core JavaScript file. Handles application initialization, slide navigation, and triggers game-specific initializations. Manages overall application state."
+    },
+    {
+      "pattern": "js/data-loader.js",
+      "purpose": "Handles fetching and loading game data (words, syllables) from JSON files in `assets/data/`. Stores loaded data in global variables (e.g., `allWordsData`, `allSyllableData`)."
+    },
+    {
+      "pattern": "js/game-*.js",
+      "purpose": "Contains the primary logic for specific games. Example: `js/game-scrambled-letters.js`."
+    },
+    {
+      "pattern": "js/games.js",
+      "purpose": "Currently holds logic for the 'Catch Syllables' game. May contain logic for other games or shared game utilities. Consider refactoring game logic into separate `game-*.js` files."
+    },
+    {
+      "pattern": "js/effects.js",
+      "purpose": "Provides reusable visual effects functions (e.g., confetti, fireworks) used across different games."
+    },
+    {
+      "pattern": "assets/data/*.json",
+      "purpose": "Stores game content. `words.json` contains words and associated emojis. `syllables.json` contains words broken down into syllables. Edits here require valid JSON format."
+    },
+    {
+      "pattern": "assets/images/*",
+      "purpose": "Static image assets used in the application."
+    },
+    {
+      "pattern": "assets/sounds/*",
+      "purpose": "Audio files for sound effects (correct, error, win)."
+    },
+    {
+      "pattern": "CONTRIBUTING.md",
+      "purpose": "Guidelines for contributing to the project, including tech stack, structure, and procedures."
+    },
+    {
+      "pattern": "README.md",
+      "purpose": "General information about the project, setup, and usage."
+    }
+  ],
+  "codingGuidelines": [
+    {
+      "guideline": "Maintain consistent code style (indentation: 4 spaces, use `const`/`let`, `===`).",
+      "appliesTo": ["js/**/*.js"]
+    },
+    {
+      "guideline": "Keep functions small and focused on a single responsibility.",
+      "appliesTo": ["js/**/*.js"]
+    },
+    {
+      "guideline": "Add JSDoc comments or standard comments for complex logic.",
+      "appliesTo": ["js/**/*.js"]
+    },
+    {
+      "guideline": "Ensure JSON files (`assets/data/*.json`) are always valid (no comments, no trailing commas).",
+      "appliesTo": ["assets/data/*.json"]
+    },
+    {
+        "guideline": "Game logic should be primarily contained within `js/game-*.js` files or clearly separated within `js/games.js`.",
+        "appliesTo": ["js/games.js", "js/game-*.js"]
+    },
+    {
+        "guideline": "Use functions from `js/data-loader.js` to access game data.",
+        "appliesTo": ["js/**/*.js"]
+    }
+  ],
+  "commonTasks": [
+    {
+      "task": "Adding a new word/syllable set",
+      "steps": [
+        "Update `assets/data/words.json` with the new word and emoji.",
+        "Update `assets/data/syllables.json` with the new word and its correct syllable breakdown.",
+        "Ensure both files remain valid JSON."
+      ]
+    },
+    {
+        "task": "Modifying game logic",
+        "steps": [
+            "Identify the relevant game file (e.g., `js/game-scrambled-letters.js`, `js/games.js`).",
+            "Make changes, following coding guidelines.",
+            "Test thoroughly in the browser, checking the console for errors.",
+            "Consider edge cases."
+        ]
+    },
+    {
+        "task": "Adding a new game",
+        "steps": [
+            "Create a new container div in `index.html` for the game.",
+            "Create a new `js/game-<new-game-name>.js` file for its logic.",
+            "Add necessary styles to `css/style.css`.",
+            "Update `js/main.js` to initialize the new game when its slide is active.",
+            "Add any required data to `assets/data/` and update `js/data-loader.js` if needed."
+        ]
+    }
+  ]
+} 
