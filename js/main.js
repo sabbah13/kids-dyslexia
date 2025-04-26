@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             progress: true, // Показываем индикатор прогресса
             center: true, // Центрируем слайды вертикально
             transition: 'slide', // Эффект перехода по умолчанию
+            touch: false, // <-- Disable touch/swipe navigation
             // Дополнительные настройки, если нужны:
             // width: "100%",
             // height: "100%",
