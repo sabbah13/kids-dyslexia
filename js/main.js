@@ -33,4 +33,52 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // if (typeof initGames === 'function') { ... } // Этот блок больше не нужен здесь
 
     console.log("Main script finished (Reveal initialized).");
+
+    // --- iOS Audio Unlock --- 
+    let audioUnlocked = false;
+    const unlockAudio = () => {
+        if (audioUnlocked) return;
+        console.log('Attempting to unlock audio context...');
+        // Try to play one of the sounds silently
+        const soundsToUnlock = ['correctSound', 'errorSound', 'winSound'];
+        let unlocked = false;
+        soundsToUnlock.forEach(soundId => {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                const playPromise = sound.play();
+                if (playPromise !== undefined) {
+                     playPromise.then(() => {
+                         // Playback started successfully, pause immediately
+                         sound.pause();
+                         sound.currentTime = 0;
+                         if (!unlocked) {
+                            console.log('Audio context likely unlocked with:', soundId);
+                            unlocked = true;
+                            audioUnlocked = true; // Set global flag
+                            // Remove the listener after successful unlock
+                            document.body.removeEventListener('click', unlockAudio, true);
+                            document.body.removeEventListener('touchstart', unlockAudio, true);
+                         }
+                     }).catch(error => {
+                         // Playback failed, likely needs more interaction
+                         // console.warn(`Could not unlock audio with ${soundId}:`, error.name, error.message);
+                     });
+                } 
+                // else { // Optional: Handle browsers not supporting play() promise
+                //     sound.pause();
+                //     sound.currentTime = 0;
+                // }
+            }
+        });
+        // Fallback in case promises didn't resolve/unlock immediately
+        // audioUnlocked = true;
+        // document.body.removeEventListener('click', unlockAudio, true);
+        // document.body.removeEventListener('touchstart', unlockAudio, true);
+    };
+
+    // Add listeners for the first user interaction
+    document.body.addEventListener('click', unlockAudio, { once: false, capture: true });
+    document.body.addEventListener('touchstart', unlockAudio, { once: false, capture: true });
+    // --- End iOS Audio Unlock ---
+
 }); 
