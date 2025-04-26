@@ -91,23 +91,24 @@ function initScrambledLettersGame() {
     // --- Настройка Draggable букв с interact.js --- 
     currentInteractableLetter = interact('#game-scrambled-letters .draggable-letters .letter')
         .draggable({
-            inertia: true,
-            modifiers: [
-                interact.modifiers.restrictRect({
-                    restriction: 'parent',
-                    endOnly: true
-                })
-            ],
+            // inertia: true, // Temporarily disable inertia
+            // modifiers: [ // Temporarily disable modifiers
+            //     interact.modifiers.restrictRect({
+            //         restriction: 'parent',
+            //         endOnly: true
+            //     })
+            // ],
             autoScroll: true,
             listeners: {
                 start(event) {
+                    console.log("Interact.js DRAG START fired for:", event.target.textContent);
                     const target = event.target;
                     target.classList.add('dragging');
-                    // Сохраняем начальные координаты для возможного возврата
                     target.setAttribute('data-start-x', target.getBoundingClientRect().left);
                     target.setAttribute('data-start-y', target.getBoundingClientRect().top);
                 },
                 move(event) {
+                    // console.log("Interact.js DRAG MOVE fired"); // Can be very noisy
                     const target = event.target;
                     const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
                     const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
@@ -118,9 +119,9 @@ function initScrambledLettersGame() {
                     target.setAttribute('data-y', y);
                 },
                 end(event) {
+                    console.log("Interact.js DRAG END fired for:", event.target.textContent);
                     const target = event.target;
                     target.classList.remove('dragging');
-                    // Если буква не попала в dropzone (проверяем по флагу)
                     if (!event.relatedTarget || !target.classList.contains('placed-in-dropzone')) {
                          // Плавно возвращаем на исходную позицию или просто сбрасываем transform
                          target.style.transform = 'translate(0px, 0px)';
@@ -135,10 +136,11 @@ function initScrambledLettersGame() {
 
     // --- Настройка Dropzone плейсхолдеров с interact.js --- 
      currentDropzoneInteractable = interact('#game-scrambled-letters .placeholder').dropzone({
-         accept: '#game-scrambled-letters .draggable-letters .letter', // Принимаем только буквы из нужного контейнера
-         overlap: 0.5, // Требуем 50% перекрытия для срабатывания
+         accept: '#game-scrambled-letters .draggable-letters .letter',
+         overlap: 0.5,
          listeners: {
              dragenter(event) {
+                 console.log("Interact.js DRAG ENTER fired on placeholder:", event.target.dataset.index, "by:", event.relatedTarget.textContent);
                  const dropzoneElement = event.target;
                  const draggableElement = event.relatedTarget;
                  if (!dropzoneElement.hasChildNodes()) { // Подсвечиваем только пустые
@@ -147,10 +149,12 @@ function initScrambledLettersGame() {
                  }
              },
              dragleave(event) {
+                 console.log("Interact.js DRAG LEAVE fired on placeholder:", event.target.dataset.index, "by:", event.relatedTarget.textContent);
                  event.target.classList.remove('over');
                  event.relatedTarget.classList.remove('can-drop');
              },
              drop(event) {
+                 console.log("Interact.js DROP fired on placeholder:", event.target.dataset.index, "with:", event.relatedTarget.textContent);
                  const dropzoneElement = event.target;
                  const draggableElement = event.relatedTarget;
 

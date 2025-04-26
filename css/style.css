@@ -137,6 +137,7 @@ body {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     user-select: none; /* Запрещаем выделение текста буквы */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    touch-action: none; /* Prevent browser scrolling/actions during drag on touch devices */
 }
 
 #game-scrambled-letters .letter:active {
