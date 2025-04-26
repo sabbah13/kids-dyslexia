@@ -278,4 +278,203 @@ body {
         opacity: 0;
     }
 }
+/* --------------------------------------- */
+
+/* --- Конец стилей для 'Перепутанные Буквы' --- */
+
+/* --- Стили для игры 'Лови Слоги' (Catch Syllables) --- */
+
+#game-catch-syllables .game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Пространство между элементами */
+    margin-top: 10px;
+    position: relative; /* Для позиционирования */
+    width: 90%;
+    height: 60vh; /* Ограничим высоту */
+    min-height: 450px;
+    background-color: rgba(135, 206, 250, 0.3); /* Полупрозрачный небесно-голубой фон */
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Скрываем слоги, вышедшие за пределы */
+}
+
+#game-catch-syllables .score-display {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #191970; /* Полночно-синий */
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 5px 15px;
+    border-radius: 15px;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+#game-catch-syllables .icon-button {
+    position: absolute;
+    top: 45px; /* Под счетом */
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    padding: 5px;
+    cursor: pointer;
+    color: #4682b4; /* Стальной синий */
+    transition: transform 0.2s ease;
+    z-index: 10;
+}
+
+#game-catch-syllables .icon-button:hover {
+    transform: scale(1.1) rotate(15deg);
+}
+
+#game-catch-syllables .target-word-area {
+    display: flex;
+    gap: 8px;
+    margin-top: 30px; /* Отступ сверху */
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+}
+
+.syllable-slot {
+    width: 80px;
+    height: 60px;
+    border: 2px dashed #b0c4de; /* Светло-стальной синий */
+    background-color: #f0f8ff; /* Алисово-синий */
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4682b4;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.syllable-slot.filled {
+    background-color: #98fb98; /* Бледно-зеленый */
+    border-color: #2e8b57; /* Морская зелень */
+    color: #006400; /* Темно-зеленый */
+}
+
+#game-catch-syllables .falling-syllables-area {
+    position: absolute;
+    top: 80px; /* Ниже шапки */
+    left: 0;
+    width: 100%;
+    height: calc(100% - 150px); /* Высота до области слова */
+    /* background: lightcoral; */ /* Для отладки */
+    overflow: hidden;
+}
+
+.falling-syllable {
+    position: absolute;
+    background-color: #ffe4b5; /* Бисск */
+    border: 1px solid #ffdab9; /* Персиковый */
+    color: #8b4513; /* Кожаный */
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    will-change: top, transform;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.falling-syllable:hover {
+    background-color: #fffacd; /* Лимонный шифон */
+    transform: scale(1.1);
+}
+
+#game-catch-syllables .feedback {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.1em;
+    font-weight: bold;
+    min-height: 30px;
+    text-align: center;
+    padding: 8px 18px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+#game-catch-syllables .feedback.success {
+    color: #228b22;
+    background-color: rgba(144, 238, 144, 0.8);
+}
+
+#game-catch-syllables .feedback.error {
+    color: #dc143c;
+    background-color: rgba(255, 182, 193, 0.8);
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Общее правило для shake может быть вынесено */
+@keyframes shake {
+   0%, 100% { transform: translateX(0); }
+   25% { transform: translateX(-5px); }
+   75% { transform: translateX(5px); }
+}
+
+/* --- Стили для эффектов победы (Общие) --- */
+
+/* Конфетти */
+.confetti {
+    position: fixed; /* Оставляем fixed для покрытия всего экрана */
+    width: 10px;
+    height: 10px;
+    background-color: var(--color);
+    opacity: 0;
+    /* Изменяем анимацию: длительность 5с, не бесконечная, forwards чтобы остаться в конечном состоянии */
+    animation: fall 5s linear forwards;
+    z-index: 9999;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Фейерверк */
+.firework-particle {
+    position: fixed; /* Используем fixed для позиционирования относительно окна */
+    width: 5px;
+    height: 5px;
+    background: var(--color);
+    border-radius: 50%;
+    opacity: 1;
+    /* Анимация взрыва остается короткой (0.8с), эффект длится за счет разлета */
+    animation: explode 0.8s ease-out forwards;
+    transform-origin: center;
+    z-index: 9998;
+}
+
+@keyframes explode {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        /* Частицы разлетаются и исчезают */
+        transform: scale(0) var(--transform);
+        opacity: 0;
+    }
+}
 /* --------------------------------------- */ 
