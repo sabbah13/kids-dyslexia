@@ -67,13 +67,33 @@ function createFireworks(container, count = 1, x = 0.5, y = 0.5) {
     }
 }
 
-// Функция для воспроизведения звука
-function playSound(soundId) {
-    const soundElement = document.getElementById(soundId);
-    if (soundElement) {
-        soundElement.currentTime = 0; // Перематываем на начало
-        soundElement.play().catch(error => console.error(`Ошибка воспроизведения ${soundId}:`, error));
-    } else {
-        console.warn(`Аудио элемент с ID "${soundId}" не найден.`);
-    }
-} 
+/**
+ * Triggers a CSS animation on an element by adding a class and removing it after a delay.
+ * @param {HTMLElement} element - The DOM element to animate.
+ * @param {string} animationClass - The CSS class containing the animation definition.
+ * @param {number} [duration=1000] - Duration in milliseconds after which to remove the class.
+ */
+function triggerAnimation(element, animationClass, duration = 1000) {
+    if (!element || !animationClass) return;
+
+    // Remove the class if it's already present (to allow re-triggering)
+    element.classList.remove(animationClass);
+
+    // Force reflow/repaint to ensure the class removal is processed before adding it again
+    // This is sometimes necessary for restarting CSS animations.
+    void element.offsetWidth;
+
+    // Add the class to start the animation
+    element.classList.add(animationClass);
+
+    // Remove the class after the specified duration
+    setTimeout(() => {
+        // Check if the element still exists in the DOM
+        if (element.parentElement) { 
+            element.classList.remove(animationClass);
+        }
+    }, duration);
+}
+
+// PlaySound function - REMOVED from here, should be in main.js or utils.js
+// function playSound(soundId) { ... } 

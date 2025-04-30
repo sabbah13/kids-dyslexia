@@ -1,0 +1,68 @@
+Test Plan: Catch Syllables Game (Game 2)
+
+Objective: Verify the core functionality of the Catch Syllables game using Playwright actions.
+
+Setup:
+1. Ensure the web server (`python server.py`) is running.
+2. Navigate the Playwright browser to http://localhost:8000.
+
+Test Steps:
+
+1.  **Navigate to Game Slide:**
+    *   Click the 'next slide' button/arrow until the "Игра 2: Лови Слоги! 🎣" heading is visible.
+    *   Verify the game container `#game-catch-syllables` is present and visible.
+
+2.  **Initial State Check:**
+    *   Wait for the target word area (`.target-word-area`) to be populated with empty `.syllable-slot` elements.
+    *   Verify the score display (`#catch-syllables-score`) shows initial score and max errors (e.g., "0 (Ошибки: 0/5)").
+    *   Wait for the first falling syllable (`.falling-syllable`) to appear in the `.falling-syllables-area`.
+    *   Verify the feedback `div.feedback` is initially empty.
+
+3.  **Correct Syllable Click:**
+    *   Identify the *next required syllable* by checking the `.syllable-slot` elements and the game state (requires inspecting data or assuming the first syllable is needed).
+    *   *Assumption for test:* Assume the first required syllable is "СО".
+    *   Wait for a `.falling-syllable` element containing the text "СО" and having `data-is-correct="true"` to appear.
+    *   Click that falling syllable element.
+    *   Verify the corresponding `.syllable-slot[data-index="0"]` now contains "СО" and has the `filled` class.
+    *   Verify the feedback `div.feedback` shows a success message (e.g., contains "👍", "Поймал!").
+    *   Verify the score display is updated (e.g., score increases by 10).
+    *   Verify the clicked syllable element is removed from the DOM.
+
+4.  **Incorrect Syllable Click:**
+    *   Wait for another falling syllable to appear.
+    *   Identify an *incorrect* syllable (either text doesn't match the next required syllable OR `data-is-correct="false"`).
+    *   *Assumption for test:* Click on a falling syllable "БА" when "КА" is needed, or click on any syllable with `data-is-correct="false"`.
+    *   Click the incorrect syllable element.
+    *   Verify the feedback `div.feedback` shows an error message (e.g., contains "🤔", "Ой, не тот слог!").
+    *   Verify the score display updates the error count (e.g., "Ошибки: 1/5").
+    *   Verify the syllable element *is not* removed immediately (it might flash red and continue falling).
+
+5.  **Syllable Falls Off Screen:**
+    *   Wait for a specific falling syllable element to reach the bottom of the `.falling-syllables-area`.
+    *   Verify the element is removed from the DOM after falling off.
+
+6.  **Word Completion:**
+    *   Click the remaining correct syllables in the correct sequence as they appear.
+    *   After the last correct click:
+        *   Verify the feedback `div.feedback` shows a win message (e.g., contains "🎉", "Ура!").
+        *   Verify the score display shows the final score including any bonus.
+        *   Verify any remaining falling syllables are removed.
+        *   Wait for ~3 seconds.
+        *   Verify a new word setup occurs (target area resets, score/errors reset, new falling syllables start).
+
+7.  **Game Over (Max Errors):**
+    *   Intentionally click incorrect syllables until the error count reaches the maximum (e.g., 5).
+    *   After the click that triggers the max errors:
+        *   Verify the feedback `div.feedback` shows a game over message (e.g., contains "😟", "Ошибок слишком много").
+        *   Verify any remaining falling syllables are removed.
+        *   Verify the target word area shows the full correct word, possibly with styling indicating missed syllables.
+
+8.  **Restart Button:**
+    *   Click the restart button `button#restart-catch-btn`.
+    *   Verify the score display resets (e.g., "0 (Ошибки: 0/5)").
+    *   Verify a new word setup occurs immediately.
+
+Teardown:
+1. Close the Playwright browser.
+2. Stop the web server if necessary.
+3. Check `client-errors.log` for any errors logged during the test. 

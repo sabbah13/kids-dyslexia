@@ -1,5 +1,5 @@
-let allWordsData = []; // Глобальная переменная для слов
-let allSyllableData = []; // Глобальная переменная для слогов
+let allWordsData = []; // Глобальная переменная для слов (оставляем как fallback/для совместимости)
+let allSyllableData = []; // Глобальная переменная для слогов (оставляем как fallback/для совместимости)
 
 // --- Function to fetch word data ---
 async function loadWordData() {
@@ -8,19 +8,13 @@ async function loadWordData() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        allWordsData = await response.json();
+        const data = await response.json();
+        allWordsData = data; // Assign to global as well
         console.log("Word data loaded successfully:", allWordsData.length, "words");
-        return true;
+        return data; // Return the data
     } catch (error) {
         console.error("Could not load word data:", error);
-        // Optionally display an error to the user in the feedback area
-        // This requires access to the feedback element, consider passing it or using a global error handler
-        // const feedbackElement = document.querySelector('#game-scrambled-letters .feedback');
-        // if (feedbackElement) {
-        //     feedbackElement.textContent = 'Ошибка загрузки слов!';
-        //     feedbackElement.className = 'feedback error';
-        // }
-        return false;
+        return null; // Return null on error
     }
 }
 
@@ -31,28 +25,13 @@ async function loadSyllableData() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        allSyllableData = await response.json();
-
-        // Optional: Add validation or filtering if needed
-        // allSyllableData = allSyllableData.filter(item => item.syllables && item.syllables.length > 0 && item.syllables.length <= 5);
-
+        const data = await response.json();
+        allSyllableData = data; // Assign to global as well
         console.log("Syllable data loaded successfully:", allSyllableData.length, "syllable words");
-        return true;
+        return data; // Return the data
     } catch (error) {
         console.error("Could not load syllable data:", error);
-        // Optionally display an error to the user
-        // const feedbackElement = document.querySelector('#game-catch-syllables .feedback');
-        // if (feedbackElement) {
-        //     feedbackElement.textContent = 'Ошибка загрузки слогов!';
-        //     feedbackElement.className = 'feedback error';
-        // }
-
-        // Fallback to placeholder if loading fails?
-        // console.warn("Falling back to placeholder syllable data.");
-        // generatePlaceholderSyllableData(); // Need to extract placeholder logic to a function
-        // return true; // Or return false if fallback is not desired
-
-        return false; // Indicate failure to load
+        return null; // Return null on error
     }
 }
 

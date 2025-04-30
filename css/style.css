@@ -178,14 +178,6 @@ body {
 #game-scrambled-letters .feedback.error {
     color: #dc143c; /* Малиновый */
     background-color: rgba(255, 182, 193, 0.7); /* Полупрозрачный светло-розовый */
-     /* Добавим легкое дрожание для ошибки */
-     animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
 }
 
 /* --- Обновленные стили для счета --- */
@@ -417,64 +409,95 @@ body {
 #game-catch-syllables .feedback.error {
     color: #dc143c;
     background-color: rgba(255, 182, 193, 0.8);
-    animation: shake 0.5s ease-in-out;
 }
 
-/* Общее правило для shake может быть вынесено */
+/* --- Reusable Feedback Animations --- */
+
 @keyframes shake {
-   0%, 100% { transform: translateX(0); }
-   25% { transform: translateX(-5px); }
-   75% { transform: translateX(5px); }
+  10%, 90% {
+    transform: translateX(-1px);
+  }
+  20%, 80% {
+    transform: translateX(2px);
+  }
+  30%, 50%, 70% {
+    transform: translateX(-4px);
+  }
+  40%, 60% {
+    transform: translateX(4px);
+  }
 }
 
-/* --- Стили для эффектов победы (Общие) --- */
-
-/* Конфетти */
-.confetti {
-    position: fixed; /* Оставляем fixed для покрытия всего экрана */
-    width: 10px;
-    height: 10px;
-    background-color: var(--color);
-    opacity: 0;
-    /* Изменяем анимацию: длительность 5с, не бесконечная, forwards чтобы остаться в конечном состоянии */
-    animation: fall 5s linear forwards;
-    z-index: 9999;
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.7); /* SpringGreen */
+  }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px 15px rgba(0, 255, 127, 0); /* Fade out shadow */
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 255, 127, 0);
+  }
 }
 
-@keyframes fall {
-    0% {
-        transform: translateY(-10vh) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(110vh) rotate(720deg);
-        opacity: 0;
-    }
+.animate-shake {
+  /* Apply the shake animation */
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  /* Optional: improve rendering during animation */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
-/* Фейерверк */
-.firework-particle {
-    position: fixed; /* Используем fixed для позиционирования относительно окна */
-    width: 5px;
-    height: 5px;
-    background: var(--color);
-    border-radius: 50%;
-    opacity: 1;
-    /* Анимация взрыва остается короткой (0.8с), эффект длится за счет разлета */
-    animation: explode 0.8s ease-out forwards;
-    transform-origin: center;
-    z-index: 9998;
+.animate-pulse {
+  /* Apply the pulse animation */
+  animation: pulse 0.7s ease-out both;
 }
 
-@keyframes explode {
-    0% {
-        transform: scale(1) translate(0, 0);
-        opacity: 1;
-    }
-    100% {
-        /* Частицы разлетаются и исчезают */
-        transform: scale(0) var(--transform);
-        opacity: 0;
-    }
+/* --- End Reusable Feedback Animations --- */
+
+/* --- Winning Emoji Animation --- */
+.winning-emoji {
+    position: absolute;
+    font-size: 5em; /* Make it large and visible */
+    z-index: 100; /* Ensure it's above most elements */
+    animation: happyDance 1.5s ease-in-out infinite alternate; /* Loop the dance */
+    /* Start slightly above and offset */
+    transform-origin: bottom center;
 }
-/* --------------------------------------- */ 
+
+@keyframes happyDance {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) rotate(8deg) scale(1.1);
+  }
+  100% {
+    transform: translateY(0) rotate(-8deg) scale(1);
+  }
+}
+/* --- End Winning Emoji Animation --- */
+
+/* --- Game Specific Styles --- */
+
+/* Стили для игры "Перепутанные Буквы" */
+/* ... existing #game-scrambled-letters styles ... */
+
+/* Remove the old shake animation from feedback.error */
+#game-scrambled-letters .feedback.error {
+    color: #dc143c; /* Малиновый */
+    background-color: rgba(255, 182, 193, 0.7); /* Полупрозрачный светло-розовый */
+}
+
+/* ... other styles ... */
+
+/* --- Игра Лови Слоги --- */
+
+/* Remove the old shake keyframes if duplicated */
+/* @keyframes shake { ... } <-- REMOVED IF EXISTS HERE */
+
+/* ... rest of the file ... */ 

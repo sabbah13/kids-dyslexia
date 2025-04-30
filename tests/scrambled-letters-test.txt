@@ -1,0 +1,55 @@
+Test Plan: Scrambled Letters Game (Game 1)
+
+Objective: Verify the core functionality of the Scrambled Letters game using Playwright actions.
+
+Setup:
+1. Ensure the web server (`python server.py`) is running.
+2. Navigate the Playwright browser to http://localhost:8000.
+
+Test Steps:
+
+1.  **Navigate to Game Slide:**
+    *   Click the 'next slide' button/arrow until the "Игра 1: Перепутанные Буквы 🧩" heading is visible.
+    *   Verify the game container `#game-scrambled-letters` is present and visible.
+
+2.  **Initial State Check:**
+    *   Wait for `.letter-placeholders` and `.draggable-letters` to be populated.
+    *   Verify the score `span#scrambled-score` shows "0".
+    *   Verify the emoji/image `div.word-image p` is displayed.
+    *   Verify the feedback `div.feedback` is initially empty or has default text.
+
+3.  **Correct Letter Drop:**
+    *   Identify the target word by inspecting the number of placeholders. (Requires knowing the word list or extracting it somehow - limitation of visual testing).
+    *   *Assumption for test:* Assume the first letter required is 'X' at placeholder index 0.
+    *   Find the draggable letter element `div.letter` containing 'X'.
+    *   Find the placeholder element `div.placeholder[data-index="0"]`.
+    *   Perform a drag-and-drop action from the letter 'X' to the first placeholder.
+    *   Verify the letter 'X' is now inside the placeholder.
+    *   Verify the feedback `div.feedback` shows a success message (e.g., contains "👍", "Отлично!").
+    *   Verify the letter 'X' is no longer draggable (or has a 'placed' class).
+
+4.  **Incorrect Letter Drop:**
+    *   *Assumption for test:* Assume the second letter required is 'Y' at placeholder index 1, but we attempt to drop 'Z'.
+    *   Find the draggable letter element `div.letter` containing 'Z'.
+    *   Find the placeholder element `div.placeholder[data-index="1"]`.
+    *   Perform a drag-and-drop action from the letter 'Z' to the second placeholder.
+    *   Verify the letter 'Z' is *not* inside the placeholder (it should snap back).
+    *   Verify the feedback `div.feedback` shows an error message (e.g., contains "🤔", "Попробуй другую").
+
+5.  **Word Completion:**
+    *   Correctly drag and drop all remaining letters to their corresponding placeholders.
+    *   After the last correct drop:
+        *   Verify the feedback `div.feedback` shows a win message (e.g., contains "🎉", "Правильно!").
+        *   Verify the score `span#scrambled-score` has increased (e.g., shows "1").
+        *   Wait for ~3 seconds.
+        *   Verify a new word setup occurs (placeholders reset, new letters appear, emoji changes).
+
+6.  **Restart Button:**
+    *   Click the restart button `button#restart-icon-btn`.
+    *   Verify the score `span#scrambled-score` resets to "0".
+    *   Verify a new word setup occurs immediately.
+
+Teardown:
+1. Close the Playwright browser.
+2. Stop the web server if necessary.
+3. Check `client-errors.log` for any errors logged during the test. 

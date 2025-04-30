@@ -10,10 +10,13 @@ let usedWordsThisSession = []; // Массив для отслеживания �
 let currentInteractableLetter = null; // To store the interactable instance
 let currentDropzoneInteractable = null; // To store the dropzone interactable instance
 
-function initScrambledLettersGame() {
+function initScrambledLettersGame(wordData) {
     console.log("Initializing Scrambled Letters Game with interact.js...");
     const gameContainer = document.getElementById('game-scrambled-letters');
-    if (!gameContainer) return;
+    if (!gameContainer) {
+        console.warn("Scrambled Letters game container not found on this slide.");
+        return; // Exit if the container is not on the current slide
+    }
 
     scoreDisplayElement = document.getElementById('scrambled-score');
     restartIconButtonElement = document.getElementById('restart-icon-btn');
@@ -32,6 +35,14 @@ function initScrambledLettersGame() {
         console.error("Не найдены все необходимые элементы в DOM для игры 'Перепутанные Буквы'.");
         return;
     }
+
+    // Check if data was passed correctly
+    if (!wordData || wordData.length === 0) {
+        console.error("Word data was not provided to initScrambledLettersGame.");
+        feedbackElement.textContent = 'Ошибка: Данные слов не загружены!';
+        return;
+    }
+    const availableWordsData = wordData; // Use passed data
 
     // Уничтожаем предыдущие интеракции, если они были (важно при рестарте)
     if (currentInteractableLetter) currentInteractableLetter.unset();
@@ -156,12 +167,11 @@ function initScrambledLettersGame() {
         let minLength, maxLength;
         const scoreLevel = Math.floor(score / 5); // Уровень определяется каждые 5 очков
 
-        // Ensure allWordsData is available (might need to pass it or make it global)
-        if (!window.allWordsData || window.allWordsData.length === 0) {
-            console.error("Word data not available for determining length range.");
-            return { minLength: 3, maxLength: 4 }; // Default fallback
+        // Use the passed availableWordsData directly
+        if (!availableWordsData || availableWordsData.length === 0) { // Should not happen due to check above, but good practice
+            console.error("Word data not available inside determineWordLengthRange.");
+            return { minLength: 3, maxLength: 4 }; 
         }
-
 
         switch (scoreLevel) {
             case 0: minLength = 3; maxLength = 4; break;
@@ -169,7 +179,8 @@ function initScrambledLettersGame() {
             case 2: minLength = 5; maxLength = 6; break;
             case 3: minLength = 6; maxLength = 7; break;
             case 4: minLength = 7; maxLength = 8; break;
-            default: minLength = 8; maxLength = Math.max(...window.allWordsData.map(w => w.word.length)); break;
+            // Ensure map doesn't fail on empty array
+            default: minLength = 8; maxLength = availableWordsData.length > 0 ? Math.max(...availableWordsData.map(w => w.word.length)) : 8; break;
         }
         console.log(`Score: ${score} (Level: ${scoreLevel}), Difficulty Range: ${minLength}-${maxLength} letters`);
         return { minLength, maxLength };
@@ -180,27 +191,28 @@ function initScrambledLettersGame() {
         feedbackElement.textContent = '';
         feedbackElement.className = 'feedback';
 
-        // Ensure allWordsData is available
-        if (!window.allWordsData || window.allWordsData.length === 0) {
-             console.error("Cannot setup new word: Word data is not loaded.");
+        // Use the passed availableWordsData
+        if (!availableWordsData || availableWordsData.length === 0) {
+             console.error("Cannot setup new word: Word data is not available.");
              feedbackElement.textContent = 'Ошибка: слова не загружены!';
              feedbackElement.className = 'feedback error';
              return;
         }
 
-
         const { minLength, maxLength } = determineWordLengthRange();
-        let availableWords = window.allWordsData.filter(item =>
+        let currentDifficultyWords = availableWordsData.filter(item =>
             item.word.length >= minLength &&
             item.word.length <= maxLength &&
             !usedWordsThisSession.includes(item.word)
         );
-        if (availableWords.length === 0) {
-            console.log("No unused words found for current difficulty, trying any unused words...");
-            availableWords = window.allWordsData.filter(item => !usedWordsThisSession.includes(item.word));
+
+        if (currentDifficultyWords.length === 0) {
+            console.log("No unused words for current difficulty, trying any unused words...");
+            currentDifficultyWords = availableWordsData.filter(item => !usedWordsThisSession.includes(item.word));
         }
-        if (availableWords.length === 0) {
-             feedbackElement.textContent = "🎉 Ура! Ты прошел ВСЕ слова! 🎉";
+
+        if (currentDifficultyWords.length === 0) {
+             feedbackElement.textContent = "�� Ура! Ты прошел ВСЕ слова! 🎉";
              feedbackElement.className = 'feedback success';
              if(lettersContainer) lettersContainer.innerHTML = '';
              if(placeholdersContainer) placeholdersContainer.innerHTML = '';
@@ -209,16 +221,17 @@ function initScrambledLettersGame() {
              return;
         }
 
-        const randomIndex = Math.floor(Math.random() * availableWords.length);
-        const selectedWordData = availableWords[randomIndex];
+        const randomIndex = Math.floor(Math.random() * currentDifficultyWords.length);
+        const selectedWordData = currentDifficultyWords[randomIndex];
         currentScrambledWord = selectedWordData.word;
         usedWordsThisSession.push(currentScrambledWord);
         const currentEmoji = selectedWordData.emoji;
-        console.log("Selected word:", currentScrambledWord, `(Length: ${currentScrambledWord.length})`, `Used: ${usedWordsThisSession.length}/${window.allWordsData.length}`);
+        console.log("Selected word:", currentScrambledWord, `(Length: ${currentScrambledWord.length})`, `Used: ${usedWordsThisSession.length}/${availableWordsData.length}`);
 
         shuffledLetters = currentScrambledWord.split('').sort(() => Math.random() - 0.5);
         if (shuffledLetters.join('') === currentScrambledWord && currentScrambledWord.length > 1) {
-             shuffledLetters = currentScrambledWord.split('').sort(() => Math.random() - 0.5);
+            console.log('Reshuffling...');
+            shuffledLetters = currentScrambledWord.split('').sort(() => Math.random() - 0.5);
         }
 
         if(placeholdersContainer) placeholdersContainer.innerHTML = '';
@@ -238,7 +251,7 @@ function initScrambledLettersGame() {
             letterDiv.textContent = letter;
             letterDiv.dataset.letter = letter;
             letterDiv.id = `letter-${index}-${Date.now()}`;
-             // Сбрасываем стили и data атрибуты перед добавлением
+             // Reset styles
              letterDiv.style.transform = 'translate(0px, 0px)';
              letterDiv.setAttribute('data-x', 0);
              letterDiv.setAttribute('data-y', 0);
@@ -246,12 +259,11 @@ function initScrambledLettersGame() {
             if(lettersContainer) lettersContainer.appendChild(letterDiv);
         });
 
-        // Make sure draggable is enabled for potentially new elements
+        // Ensure interact.js targets new letters
          if(currentInteractableLetter) {
-            // Re-enable draggable on the selector to catch new elements
-            interact('#game-scrambled-letters .draggable-letters .letter').draggable(true);
+            interact('#game-scrambled-letters .draggable-letters .letter').draggable(true); 
          } else {
-             console.warn("currentInteractableLetter not defined, cannot ensure draggable is enabled for new letters.");
+            console.warn("currentInteractableLetter not defined during setupNewWord.");
          }
 
         console.log("New word setup complete.");

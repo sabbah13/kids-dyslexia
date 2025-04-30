@@ -23,12 +23,12 @@ let catchSyllablesState = {
     gameAreaWidth: 0,
 };
 
-function initCatchSyllablesGame() {
-    console.log("Initializing Catch Syllables Game...");
+function initCatchSyllablesGame(wordsData) {
+    console.log("Initializing Catch Syllables Game with wordsData:", wordsData);
     const gameContainer = document.getElementById('game-catch-syllables');
     if (!gameContainer) {
         console.warn("Catch Syllables game container not found in this slide.");
-        return; // Exit if the container is not on the current slide
+        return;
     }
 
     const gameArea = gameContainer.querySelector('.game-area');
@@ -43,146 +43,78 @@ function initCatchSyllablesGame() {
         return;
     }
 
-    function startCatchGame() {
-        console.log("Starting/Restarting Catch Syllables game...");
-        catchSyllablesState.isGameOver = false;
-        catchSyllablesState.score = 0;
-        catchSyllablesState.errors = 0;
-        catchSyllablesState.nextSyllableIndex = 0;
-        catchSyllablesState.caughtSyllables = [];
-        catchSyllablesState.fallingSyllables.forEach(s => s.element.remove()); // Удаляем старые слоги
+    if (!wordsData || wordsData.length === 0) {
+        console.error("Word data was not provided to initCatchSyllablesGame.");
+        feedbackElement.textContent = 'Ошибка: Данные слов не загружены!';
+        return;
+    }
+    const availableWordsData = wordsData;
+
+    if (catchSyllablesState.gameInterval) {
+        clearInterval(catchSyllablesState.gameInterval);
+        catchSyllablesState.gameInterval = null;
+    }
+    catchSyllablesState.fallingSyllables.forEach(s => s.element.remove());
+    catchSyllablesState.fallingSyllables = [];
+
+    function updateCatchScoreDisplay() {
+         if (scoreDisplay) {
+             scoreDisplay.textContent = `${catchSyllablesState.score} (Ошибки: ${catchSyllablesState.errors}/${catchSyllablesState.maxErrors})`;
+         }
+    }
+    
+    function gameOver(isWin) {
+        console.log(`Game Over. Win: ${isWin}`);
+        catchSyllablesState.isGameOver = true;
+        clearInterval(catchSyllablesState.gameInterval);
+
+        catchSyllablesState.fallingSyllables.forEach(s => s.element.remove());
         catchSyllablesState.fallingSyllables = [];
-        targetWordArea.innerHTML = '';
-        feedbackElement.textContent = '';
-        feedbackElement.className = 'feedback';
-        updateCatchScoreDisplay();
 
-        // Выбор слова
-        if (allSyllableData.length === 0) {
-            console.error("Нет данных для игры 'Лови Слоги'");
-            feedbackElement.textContent = 'Ошибка: нет слов!';
-            return;
-        }
-        const randomIndex = Math.floor(Math.random() * allSyllableData.length);
-        catchSyllablesState.currentWordData = allSyllableData[randomIndex];
-        catchSyllablesState.targetSyllables = catchSyllablesState.currentWordData.syllables;
-        console.log("Selected word:", catchSyllablesState.currentWordData.word);
-
-        // Отображение слотов для слова
-        catchSyllablesState.targetSyllables.forEach((syllable, index) => {
-            const slot = document.createElement('div');
-            slot.classList.add('syllable-slot');
-            slot.dataset.index = index;
-            targetWordArea.appendChild(slot);
-        });
-
-        // Запуск анимации и спауна слогов
-        clearInterval(catchSyllablesState.gameInterval); // Очищаем старый интервал
-        catchSyllablesState.gameAreaHeight = fallingArea.offsetHeight;
-        catchSyllablesState.gameAreaWidth = fallingArea.offsetWidth;
-        catchSyllablesState.gameInterval = setInterval(gameLoop, 16); // ~60 FPS
-
-        spawnSyllable(); // Спауним первый слог сразу
-        setTimeout(spawnSyllableLoop, catchSyllablesState.spawnInterval); // Начинаем спаунить остальные
-    }
-
-    function spawnSyllableLoop() {
-        if (catchSyllablesState.isGameOver) return;
-        spawnSyllable();
-        setTimeout(spawnSyllableLoop, catchSyllablesState.spawnInterval * (0.8 + Math.random() * 0.4)); // Небольшой разброс времени
-    }
-
-    function spawnSyllable() {
-        if (catchSyllablesState.isGameOver || !fallingArea) return;
-        console.log("Spawning syllable...");
-
-        const isCorrectSyllable = Math.random() > 0.4 && catchSyllablesState.nextSyllableIndex < catchSyllablesState.targetSyllables.length; // 60% шанс правильного
-        let syllableText = '';
-
-        if (isCorrectSyllable) {
-            syllableText = catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex];
-        } else {
-            // Генерируем неправильный слог (из другого слова или просто набор букв)
-            const randomWordIndex = Math.floor(Math.random() * allSyllableData.length);
-            const randomSyllableIndex = Math.floor(Math.random() * allSyllableData[randomWordIndex].syllables.length);
-            syllableText = allSyllableData[randomWordIndex].syllables[randomSyllableIndex];
-            // Проверка, чтобы случайно не совпал с нужным
-            if (syllableText === catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]) {
-                 syllableText = syllableText + "!"; // Или другая модификация
-            }
-        }
-
-        const syllableElement = document.createElement('div');
-        syllableElement.classList.add('falling-syllable');
-        syllableElement.textContent = syllableText;
-        syllableElement.dataset.syllable = syllableText;
-        syllableElement.dataset.isCorrect = isCorrectSyllable;
-
-        // Случайная позиция X
-        const maxLeft = catchSyllablesState.gameAreaWidth - 80; // Учитываем ширину слога
-        syllableElement.style.left = Math.random() * maxLeft + 'px';
-        syllableElement.style.top = '-50px'; // Начальная позиция над экраном
-
-        syllableElement.addEventListener('click', handleSyllableClick);
-
-        fallingArea.appendChild(syllableElement);
-        catchSyllablesState.fallingSyllables.push({ element: syllableElement, syllable: syllableText, isCorrect: isCorrectSyllable });
-        console.log(`Spawned: ${syllableText}, Correct: ${isCorrectSyllable}`);
-    }
-
-    function handleSyllableClick(event) {
-        if (catchSyllablesState.isGameOver) return;
-        const clickedElement = event.target;
-        const syllable = clickedElement.dataset.syllable;
-        const isCorrect = clickedElement.dataset.isCorrect === 'true';
-
-        console.log(`Clicked: ${syllable}, Correct needed: ${catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]}`);
-
-        if (isCorrect && syllable === catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]) {
-            // Правильно!
-            console.log("Correct syllable caught!");
-            playSound('correctSound');
-            feedbackElement.textContent = '👍 Поймал!';
-            feedbackElement.className = 'feedback success';
-
-            // Помещаем слог в нужный слот
-            const targetSlot = targetWordArea.querySelector(`.syllable-slot[data-index="${catchSyllablesState.nextSyllableIndex}"]`);
-            if (targetSlot) {
-                targetSlot.textContent = syllable;
-                targetSlot.classList.add('filled');
-            }
-
-            catchSyllablesState.caughtSyllables.push(syllable);
-            catchSyllablesState.nextSyllableIndex++;
-            catchSyllablesState.score += 10;
+        if (isWin) {
+            feedbackElement.textContent = '🎉 Ура! Слово собрано! 🎉';
+            feedbackElement.className = 'feedback success win';
+            playSound('winSound');
+            catchSyllablesState.score += 50;
             updateCatchScoreDisplay();
+            if(gameArea) createFireworks(gameArea);
 
-            // Удаляем элемент
-            clickedElement.remove();
-            catchSyllablesState.fallingSyllables = catchSyllablesState.fallingSyllables.filter(s => s.element !== clickedElement);
+            if (catchSyllablesState.currentWordData && catchSyllablesState.currentWordData.emoji && targetWordArea) {
+                const emojiElement = document.createElement('div');
+                emojiElement.textContent = catchSyllablesState.currentWordData.emoji;
+                emojiElement.classList.add('winning-emoji');
+                
+                const targetRect = targetWordArea.getBoundingClientRect();
+                const gameAreaRect = gameArea.getBoundingClientRect();
+                emojiElement.style.left = `${targetRect.left - gameAreaRect.left + targetRect.width / 2 - 40}px`;
+                emojiElement.style.top = `${targetRect.top - gameAreaRect.top - 80}px`;
 
-            checkCatchCompletion();
+                gameArea.appendChild(emojiElement);
+
+                setTimeout(() => {
+                    if (emojiElement.parentElement) {
+                        emojiElement.remove();
+                    }
+                }, 3000);
+            }
+
+            setTimeout(startCatchGame, 3000);
         } else {
-            // Неправильно!
-            console.log("Incorrect syllable caught or wrong sequence.");
-            playSound('errorSound');
-            feedbackElement.textContent = '🤔 Ой, не тот слог!';
+            feedbackElement.textContent = `😟 Ошибок слишком много. Слово было: ${catchSyllablesState.currentWordData.word}`;            
             feedbackElement.className = 'feedback error';
-            catchSyllablesState.errors++;
-            updateCatchScoreDisplay(); // Можно показывать ошибки
+            targetWordArea.querySelectorAll('.syllable-slot').forEach((slot, index) => {
+                if (!slot.classList.contains('filled')) {
+                    slot.textContent = catchSyllablesState.targetSyllables[index];
+                    slot.style.color = 'gray';
+                }
+            });
+        }
+    }
 
-            // Анимация ошибки на слоге (например, покраснение)
-            clickedElement.style.backgroundColor = '#ff7f7f';
-            setTimeout(() => { // Возвращаем цвет, если слог не удаляется
-                 // Добавляем проверку, что элемент еще в DOM и что это был НЕПРАВИЛЬНЫЙ клик
-                 if (clickedElement.parentElement && !isCorrect) {
-                     clickedElement.style.backgroundColor = ''; // Возвращаем исходный для неправильных
-                 }
-            }, 500);
-
-             if (catchSyllablesState.errors >= catchSyllablesState.maxErrors) {
-                 gameOver(false);
-             }
+    function checkCatchCompletion() {
+        if (catchSyllablesState.nextSyllableIndex === catchSyllablesState.targetSyllables.length) {
+             console.log("Word completed!");
+             gameOver(true);
         }
     }
 
@@ -198,7 +130,6 @@ function initCatchSyllablesGame() {
             currentTop += catchSyllablesState.fallSpeed;
             element.style.top = currentTop + 'px';
 
-            // Удаляем слог, если он упал ниже экрана
             if (currentTop > catchSyllablesState.gameAreaHeight) {
                 console.log(`Syllable ${item.syllable} removed (fell off screen)`);
                 element.remove();
@@ -207,53 +138,151 @@ function initCatchSyllablesGame() {
         });
     }
 
-    function checkCatchCompletion() {
-        if (catchSyllablesState.nextSyllableIndex === catchSyllablesState.targetSyllables.length) {
-             console.log("Word completed!");
-             gameOver(true);
+    function handleSyllableClick(event) {
+        if (catchSyllablesState.isGameOver) return;
+        const clickedElement = event.target;
+        const syllable = clickedElement.dataset.syllable;
+        const isCorrect = clickedElement.dataset.isCorrect === 'true';
+
+        console.log(`Clicked: ${syllable}, Correct needed: ${catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]}`);
+
+        if (isCorrect && syllable === catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]) {
+            console.log("Correct syllable caught!");
+            playSound('correctSound');
+            const targetSlot = targetWordArea.querySelector(`.syllable-slot[data-index="${catchSyllablesState.nextSyllableIndex}"]`);
+            if (targetSlot) {
+                targetSlot.textContent = syllable;
+                targetSlot.classList.add('filled');
+                triggerAnimation(targetSlot, 'animate-pulse');
+            }
+
+            catchSyllablesState.caughtSyllables.push(syllable);
+            catchSyllablesState.nextSyllableIndex++;
+            catchSyllablesState.score += 10;
+            updateCatchScoreDisplay();
+
+            clickedElement.remove();
+            catchSyllablesState.fallingSyllables = catchSyllablesState.fallingSyllables.filter(s => s.element !== clickedElement);
+
+            checkCatchCompletion();
+        } else {
+            console.log("Incorrect syllable caught or wrong sequence.");
+            playSound('errorSound');
+            triggerAnimation(clickedElement, 'animate-shake');
+            catchSyllablesState.errors++;
+            updateCatchScoreDisplay();
+
+            if (catchSyllablesState.errors >= catchSyllablesState.maxErrors) {
+                 gameOver(false);
+             }
         }
     }
 
-    function gameOver(isWin) {
-        console.log(`Game Over. Win: ${isWin}`);
-        catchSyllablesState.isGameOver = true;
-        clearInterval(catchSyllablesState.gameInterval);
+    function spawnSyllable() {
+        if (catchSyllablesState.isGameOver || !fallingArea || !availableWordsData || availableWordsData.length === 0) return;
+        console.log("Spawning syllable...");
 
-        // Удаляем оставшиеся слоги
+        const isCorrectSyllable = Math.random() > 0.4 && catchSyllablesState.nextSyllableIndex < catchSyllablesState.targetSyllables.length;
+        let syllableText = '';
+
+        if (isCorrectSyllable) {
+            syllableText = catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex];
+        } else {
+            const randomWordIndex = Math.floor(Math.random() * availableWordsData.length);
+            if (availableWordsData[randomWordIndex] && availableWordsData[randomWordIndex].syllables && availableWordsData[randomWordIndex].syllables.length > 0) {
+                const randomSyllableIndex = Math.floor(Math.random() * availableWordsData[randomWordIndex].syllables.length);
+                syllableText = availableWordsData[randomWordIndex].syllables[randomSyllableIndex];
+                if (catchSyllablesState.targetSyllables.length > catchSyllablesState.nextSyllableIndex && 
+                    syllableText === catchSyllablesState.targetSyllables[catchSyllablesState.nextSyllableIndex]) {
+                     syllableText = syllableText + "-";
+                }
+            } else {
+                syllableText = "БУМ"; 
+            }
+        }
+
+        if (!syllableText) {
+            console.warn("spawnSyllable: syllableText is empty, skipping spawn.");
+            return; 
+        }
+
+        const syllableElement = document.createElement('div');
+        syllableElement.classList.add('falling-syllable');
+        syllableElement.textContent = syllableText;
+        syllableElement.dataset.syllable = syllableText;
+        syllableElement.dataset.isCorrect = isCorrectSyllable;
+
+        const maxLeft = catchSyllablesState.gameAreaWidth - 80;
+        syllableElement.style.left = Math.random() * maxLeft + 'px';
+        syllableElement.style.top = '-50px';
+
+        syllableElement.addEventListener('click', handleSyllableClick);
+
+        fallingArea.appendChild(syllableElement);
+        catchSyllablesState.fallingSyllables.push({ element: syllableElement, syllable: syllableText, isCorrect: isCorrectSyllable });
+        console.log(`Spawned: ${syllableText}, Correct: ${isCorrectSyllable}`);
+    }
+
+    function spawnSyllableLoop() {
+        if (catchSyllablesState.isGameOver) return;
+        spawnSyllable();
+        setTimeout(spawnSyllableLoop, catchSyllablesState.spawnInterval * (0.8 + Math.random() * 0.4));
+    }
+
+    function startCatchGame() {
+        console.log("Starting/Restarting Catch Syllables game...");
+        catchSyllablesState.isGameOver = false;
+        catchSyllablesState.score = 0;
+        catchSyllablesState.errors = 0;
+        catchSyllablesState.nextSyllableIndex = 0;
+        catchSyllablesState.caughtSyllables = [];
         catchSyllablesState.fallingSyllables.forEach(s => s.element.remove());
         catchSyllablesState.fallingSyllables = [];
-
-        if (isWin) {
-            feedbackElement.textContent = '🎉 Ура! Слово собрано! 🎉';
-            feedbackElement.className = 'feedback success win';
-            playSound('winSound');
-            catchSyllablesState.score += 50; // Бонус за сбор слова
-            updateCatchScoreDisplay();
-            if(gameArea) createFireworks(gameArea);
-            // Можно добавить setTimeout для старта новой игры
-            setTimeout(startCatchGame, 3000);
-        } else {
-            feedbackElement.textContent = `😟 Ошибок слишком много. Слово было: ${catchSyllablesState.currentWordData.word}`;            
-            feedbackElement.className = 'feedback error';
-            // Показываем правильное слово в слотах?
-            targetWordArea.querySelectorAll('.syllable-slot').forEach((slot, index) => {
-                if (!slot.classList.contains('filled')) {
-                    slot.textContent = catchSyllablesState.targetSyllables[index];
-                    slot.style.color = 'gray'; // Помечаем как не пойманные
-                }
-            });
+        targetWordArea.innerHTML = '';
+        fallingArea.innerHTML = '';
+        catchSyllablesState.fallingSyllables = [];
+        if(feedbackElement) {
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
         }
+        updateCatchScoreDisplay();
+
+        if (availableWordsData.length === 0) {
+            console.error("Нет данных для игры 'Лови Слоги'");
+            if(feedbackElement) feedbackElement.textContent = 'Ошибка: нет слов!';
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * availableWordsData.length);
+        catchSyllablesState.currentWordData = availableWordsData[randomIndex];
+        
+        if (!catchSyllablesState.currentWordData || !catchSyllablesState.currentWordData.syllables) {
+            console.error("Selected word data is invalid or missing syllables:", catchSyllablesState.currentWordData);
+            if(feedbackElement) feedbackElement.textContent = 'Ошибка: неверные данные слова!';
+            startCatchGame();
+            return;
+        }
+        
+        catchSyllablesState.targetSyllables = catchSyllablesState.currentWordData.syllables;
+        console.log("Selected word:", catchSyllablesState.currentWordData.word, 
+                    "Syllables:", catchSyllablesState.targetSyllables, 
+                    "Emoji:", catchSyllablesState.currentWordData.emoji);
+
+        catchSyllablesState.targetSyllables.forEach((syllable, index) => {
+            const slot = document.createElement('div');
+            slot.classList.add('syllable-slot');
+            slot.dataset.index = index;
+            targetWordArea.appendChild(slot);
+        });
+
+        catchSyllablesState.gameAreaHeight = fallingArea.offsetHeight;
+        catchSyllablesState.gameAreaWidth = fallingArea.offsetWidth;
+        catchSyllablesState.gameInterval = setInterval(gameLoop, 16);
+        spawnSyllable();
+        setTimeout(spawnSyllableLoop, catchSyllablesState.spawnInterval);
     }
 
-     function updateCatchScoreDisplay() {
-         if (scoreDisplay) {
-             scoreDisplay.textContent = `${catchSyllablesState.score} (Ошибки: ${catchSyllablesState.errors}/${catchSyllablesState.maxErrors})`;
-         }
-     }
-
-    // Первоначальный запуск игры при инициализации
     startCatchGame();
-    // Привязка кнопки рестарта
+    restartButton.removeEventListener('click', startCatchGame);
     restartButton.addEventListener('click', startCatchGame);
 }
 
